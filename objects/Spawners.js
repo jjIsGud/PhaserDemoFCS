@@ -1,8 +1,28 @@
+export class SpawnerGroup extends Phaser.Physics.Arcade.Group {
+  constructor(scene, enemyGroup) {
+    super(scene.physics.world, scene);
+    this.scene = scene;
+    this.enemyGroup = enemyGroup;
+    this.immovable = true;
+    this.collideWorldBounds = true;
+    this.runChildUpdate = true;
+  }
+
+  createSpawner(target, x, y, config = {}) {
+    const spawner = new Spawner(this.scene, this, this.enemyGroup, x, y, target, config);
+    this.add(spawner, true);
+    return spawner;
+  }
+  
+  getSpawnerByName(name) {
+    const s = this.getMatching('name', name);
+    if (s?.length > 0) return b[0];
+  }
+}
+
 export class Spawner extends Phaser.GameObjects.Ellipse {
   constructor(scene, group, enemyGroup, x, y, target, config = {}) {
     super(scene, x, y, config.width || 50, config.height || 50, 0x004400);
-    // console.log('creating new Spawner')
-    // super(scene);
     this.scene = scene;
     this.group = group;;
     this.active = true;
@@ -12,6 +32,8 @@ export class Spawner extends Phaser.GameObjects.Ellipse {
     this.timeAlive = 0;
     this.level = 1;
     this.enemies = enemyGroup;
+    this.x = x;
+    this.y = y;
 
     // create the spawner
     this.active = true;
@@ -20,21 +42,18 @@ export class Spawner extends Phaser.GameObjects.Ellipse {
     this.max = config.max || 25;
     this.hp = this.maxHP;
     this.spawnTimer = 0;
-    this.setData('hp', this.hp);
     this.level = 1;
 
     // create the spawner
     this.scene.physics.add.existing(this);
     this.scene.add.existing(this);
-    this.group.add(this);
 
-    this.health = this.scene.add.text(this.x, this.y, this.hp, 0xffffff);
+    this.healthDisplay = this.scene.add.text(this.x, this.y, this.hp, 0xffffff);
   }
 
   preUpdate(ts, delta) {
     this.timeAlive += delta;
-    this.hp = this.getData('hp');
-    this.health.setText(this.hp);
+    this.healthDisplay.setText(this.hp);
     Phaser.Display.Align.In.Center(this.health, this);
 
     // check if spawn point is alive
@@ -55,10 +74,26 @@ export class Spawner extends Phaser.GameObjects.Ellipse {
     }
     // try to spawn another
     if (this.spawnTimer <= 0 && this.enemies.countActive() < this.max) {
-      this.enemies.createEnemy(this.scene, this.enemyGroup, this.x, this.y, this.target, this, this.enemyConfig);
+      this.enemies.createEnemy(this.x, this.y, this.target, this, this.enemyConfig);
       this.spawnTimer = 2000 + this.enemies.countActive() * 100;
     } else {
       this.spawnTimer -= delta;
     }
   }
+  
+  takeDamage(damage) {
+    if(damage >= this.hp) {
+      this.hp = 0;
+      this.cleanup();
+      return;
+    }
+    this.hp -= damage;
+  }
+
+  cleanup() {
+    this.healthDisplay.destroy();
+    this.group.remove(this);
+    this.destroy();
+  }
+
 }

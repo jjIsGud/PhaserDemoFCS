@@ -1,28 +1,28 @@
-const BULLET_SIZE = { w: 5, h: 5 };
-
 export class BulletGroup extends Phaser.Physics.Arcade.Group {
   constructor(scene) {
     super(scene.physics.world, scene);
     this.scene = scene;
+
     this.immovable = true;
+    this.collideWorldBounds = false;
     this.runChildUpdate = true;
   }
 
   createBullet(shooter, color, damage) {
-    const b = new Bullet(this.scene, this, shooter, color, damage);
-    this.add(b);
+    const bullet = new Bullet(this.scene, this, shooter, color, damage);
+    this.add(bullet);
+    return bullet;
   }
-
-  bulletHitsEnemy(bullet, enemy) {
-    const fBullet = this.children.getByName(bullet.name);
-    if(fBullet) fBullet.hitEnemy(enemy);
+  
+  getBulletByName(name) {
+    const b = this.getMatching('name', name);
+    if (b?.length > 0) return b[0];
   }
-
 }
 
 export class Bullet extends Phaser.GameObjects.Rectangle {
   constructor(scene, group, shooter, color = 0xff4400, damage = 5) {
-    super(scene, shooter.x, shooter.y, BULLET_SIZE.w, BULLET_SIZE.h, color);
+    super(scene, shooter.x, shooter.y, 5, 5, color);
     this.scene = scene;
     this.group = group;
     this.name = Date.now() + '' + Math.random();
@@ -44,9 +44,8 @@ export class Bullet extends Phaser.GameObjects.Rectangle {
   }
 
   hitEnemy(enemy) {
-    const enemyHP = enemy.getData('hp');
-    enemy.setData('hp', enemyHP - this.damage);
-    this.shooter.setData('bulletHits', this.shooter.getData('bulletHits') + 1);
+    console.log(this.shooter);
+    this.shooter.bulletHits++;
     this.cleanup();
   }
 

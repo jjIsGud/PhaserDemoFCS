@@ -7,7 +7,9 @@ export class PotionGroup extends Phaser.Physics.Arcade.Group {
   }
 
   createPotion(x, y, value) {
-    this.add(new HealthPotion(this.scene, this, x, y, value), true);
+    const healthPotion = new HealthPotion(this.scene, this, x, y, value);
+    this.add(healthPotion, true);
+    return healthPotion;
   }
 
   consume(player, potion) {
@@ -49,11 +51,9 @@ class HealthPotion extends Phaser.GameObjects.Star {
   }
 
   consumedBy(player) {
-    const playerHP = player.getData('hp');
-    const playerMaxHP = player.getData('maxHP');
-    player.setData('hp', Math.min(playerMaxHP, playerHP + this.health));
     this.healthDisplay.destroy();
-    this.group.killAndHide(this);
+    this.group.remove(this);
+    this.destroy();
   }
 
 }

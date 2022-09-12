@@ -10,26 +10,28 @@ export class EnemyGroup extends Phaser.Physics.Arcade.Group {
   }
 
   createEnemy(x, y, target, home, config) {
-    this.add(new Enemy(this,scene, this, x, y, target, home, config));
+    const enemy = new Enemy(this.scene, this, x, y, target, home, config);
+    this.add(enemy, true);
+    return enemy;
   }
 
   getEnemyByName(name) {
-    return this.children.getByName(name);
-  }
-
-  enemyHitsTarget(enemy, target) {
-    const e = this.getEnemyByName(enemy.name);
-    e.hitTarget(target);
+    const e = this.getMatching('name', name);
+    if (e?.length > 0) return e[0];
   }
 
   enemyGetsToBase(enemy) {
+    if(enemy.state !== Enemy.States.HEALING) return;
     this.getEnemyByName(enemy.name).levelUp();
     e.setState(Enemy.States.ATTACKING);
   }
 }
-class Enemy extends Phaser.GameObjects.Ellipse {
+
+
+export class Enemy extends Phaser.GameObjects.Ellipse {
   constructor(scene, group, x, y, target, home, config = {}) {
-    super(scene, x, y, config.width || 25, config.height || 20, config.color || 0x004444)
+    super(scene, x, y, config.width || 25, config.height || 20, config.color || 0x004444);
+    
     this.scene = scene;
     this.group = group;
     this.target = target;
@@ -44,7 +46,7 @@ class Enemy extends Phaser.GameObjects.Ellipse {
     this.scene.physics.add.existing(this);
     this.stunnedTimer = 500;
     this.setState(Enemy.States.STUNNED);
-    this.health = this.scene.add.text(this.body.x, this.body.y, this.hp)
+    this.health = this.scene.add.text(this.body.x, this.body.y, this.hp);
   }
 
   preUpdate(ts, delta) {
@@ -89,9 +91,11 @@ class Enemy extends Phaser.GameObjects.Ellipse {
         this.scene.physics.moveToObject(this, this.home, this.speed);
       case Enemy.States.DYING:
         // TODO: death animation
+        this.setState(Enemy.States.DEAD)
         break;
       default:
-        this.scene.physics.moveToObject(this, this.target.body, this.speed);
+        // console.log({ x: this.target.x, y: this.target.y})
+        this.scene.physics.moveToObject(this, this.target, this.speed);
     }
   }
 
@@ -104,8 +108,24 @@ class Enemy extends Phaser.GameObjects.Ellipse {
   }
 
   hitTarget(target) {
-    target.hp -= Math.round(enemy.hp / 5);
+    target.hp -= Math.round(this.hp / 5);
+    
+    if (this.hp < 10) {
+      this.hp = 0;
+      this.setState(Enemy.States.DEAD)
+      return;
+    }
+    
     this.hp -= 10;
+    this.setState(Enemy.States.TAKING_DAMAGE);
+  }
+
+  takeDamage(damage) {
+    if (this.hp <= damage) {
+      this.setState(Enemy.States.DYING);
+      return;
+    }
+    this.hp -= damage;
     this.setState(Enemy.States.TAKING_DAMAGE);
   }
   
