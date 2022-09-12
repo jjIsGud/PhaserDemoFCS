@@ -123,14 +123,14 @@ export class MainLevel extends Phaser.Scene {
   }
 
   createInitialSpawners() {
-    this.spawners.createSpawner(this.enemies, this.player, 775, 25, {
+    this.spawners.createSpawner(this.player, 775, 25, {
       hp: 100
     });
-    this.spawners.createSpawner(this.enemies, this.player, 775, 575, {
+    this.spawners.createSpawner(this.player, 775, 575, {
       hp: 400
     });
-    this.spawners.createSpawner(this.enemies, this.player, 25, 25, { hp: 500 });
-    this.spawners.createSpawner(this.enemies, this.player, 25, 575);
+    this.spawners.createSpawner(this.player, 25, 25, { hp: 500 });
+    this.spawners.createSpawner(this.player, 25, 575);
   }
 
   bulletHitsEnemy(bullet, enemy) {
