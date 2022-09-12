@@ -1,3 +1,5 @@
+import { Phaser } from "../phaser.js";
+
 export class PotionGroup extends Phaser.Physics.Arcade.Group {
   // https://www.codecaptain.io/blog/game-development/shooting-bullets-phaser-3-using-arcade-physics-groups/696
   constructor(scene) {
@@ -23,13 +25,18 @@ class HealthPotion extends Phaser.GameObjects.Star {
     super(scene, x, y, 3, 5, 10, 0xff0000);
     this.x = x;
     this.y = y;
-    this.name = Date.now() + '' + Math.random();
+    this.name = Date.now() + "" + Math.random();
     this.scene = scene;
     this.group = group;
     this.health = startingHP;
     this.scene.add.existing(this);
 
-    this.healthDisplay = this.scene.add.text(this.x, this.y, Math.round(this.health), { fontSize: 10 });
+    this.healthDisplay = this.scene.add.text(
+      this.x,
+      this.y,
+      Math.round(this.health),
+      { fontSize: 10 }
+    );
     Phaser.Display.Align.In.Center(this.healthDisplay, this);
   }
 
@@ -55,5 +62,4 @@ class HealthPotion extends Phaser.GameObjects.Star {
     this.group.remove(this);
     this.destroy();
   }
-
 }

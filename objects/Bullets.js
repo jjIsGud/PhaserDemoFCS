@@ -1,3 +1,5 @@
+import { Phaser } from "../phaser.js";
+
 export class BulletGroup extends Phaser.Physics.Arcade.Group {
   constructor(scene) {
     super(scene.physics.world, scene);
@@ -13,9 +15,9 @@ export class BulletGroup extends Phaser.Physics.Arcade.Group {
     this.add(bullet);
     return bullet;
   }
-  
+
   getBulletByName(name) {
-    const b = this.getMatching('name', name);
+    const b = this.getMatching("name", name);
     if (b?.length > 0) return b[0];
   }
 }
@@ -25,20 +27,29 @@ export class Bullet extends Phaser.GameObjects.Rectangle {
     super(scene, shooter.x, shooter.y, 5, 5, color);
     this.scene = scene;
     this.group = group;
-    this.name = Date.now() + '' + Math.random();
+    this.name = Date.now() + "" + Math.random();
     this.shooter = shooter;
     this.damage = damage;
     this.scene.add.existing(this);
     this.scene.physics.add.existing(this);
-    this.first = true
+    this.first = true;
   }
 
   preUpdate(ts, delta) {
-  if(this.first) {
-    this.scene.physics.velocityFromRotation(this.shooter.rotation, 500, this.body.velocity);
-    this.first = false;
-  }
-    if (!Phaser.Geom.Rectangle.Overlaps(this.scene.physics.world.bounds, this.getBounds())) {
+    if (this.first) {
+      this.scene.physics.velocityFromRotation(
+        this.shooter.rotation,
+        500,
+        this.body.velocity
+      );
+      this.first = false;
+    }
+    if (
+      !Phaser.Geom.Rectangle.Overlaps(
+        this.scene.physics.world.bounds,
+        this.getBounds()
+      )
+    ) {
       this.cleanup();
     }
   }

@@ -1,3 +1,4 @@
+import Phaser from "../phaser.js";
 
 export class EnemyGroup extends Phaser.Physics.Arcade.Group {
   constructor(scene) {
@@ -16,26 +17,32 @@ export class EnemyGroup extends Phaser.Physics.Arcade.Group {
   }
 
   getEnemyByName(name) {
-    const e = this.getMatching('name', name);
+    const e = this.getMatching("name", name);
     if (e?.length > 0) return e[0];
   }
 
   enemyGetsToBase(enemy) {
-    if(enemy.state !== Enemy.States.HEALING) return;
+    if (enemy.state !== Enemy.States.HEALING) return;
     this.getEnemyByName(enemy.name).levelUp();
-    e.setState(Enemy.States.ATTACKING);
+    enemy.setState(Enemy.States.ATTACKING);
   }
 }
 
-
 export class Enemy extends Phaser.GameObjects.Ellipse {
   constructor(scene, group, x, y, target, home, config = {}) {
-    super(scene, x, y, config.width || 25, config.height || 20, config.color || 0x004444);
-    
+    super(
+      scene,
+      x,
+      y,
+      config.width || 25,
+      config.height || 20,
+      config.color || 0x004444
+    );
+
     this.scene = scene;
     this.group = group;
     this.target = target;
-    this.name = Date.now() + '' + Math.random();
+    this.name = Date.now() + "" + Math.random();
     this.home = home;
     this.active = true;
     this.maxHP = config.hp || 10;
@@ -54,13 +61,13 @@ export class Enemy extends Phaser.GameObjects.Ellipse {
     this.stunnedTimer -= delta;
 
     // recover speed
-    if(this.speed < this.maxSpeed) this.speed += 1;
+    if (this.speed < this.maxSpeed) this.speed += 1;
     this.speed = Math.min(this.maxSpeed, this.speed);
-    
+
     Phaser.Display.Align.In.Center(this.health, this);
     this.health.setText(this.hp);
-    switch(this.state) {
-      case Enemy.States.DEAD: 
+    switch (this.state) {
+      case Enemy.States.DEAD:
         this.group.remove(this, true, true);
         this.health.destroy();
         this.destroy();
@@ -75,23 +82,34 @@ export class Enemy extends Phaser.GameObjects.Ellipse {
       case Enemy.States.STUNNED:
         this.body.setVelocity(0, 0);
         this.scene.physics.moveToObject(this, this.home, this.speed);
-          
-        if(this.stunnedTimer <= 0) {
+
+        if (this.stunnedTimer <= 0) {
           this.speed = this.speed * 0.75;
           // this.setFillStyle(0x004444);
-          if(Phaser.Math.Distance.Between(this.x, this.y, this.home.x, this.home.y) > 100) {
-            this.setState(Math.random() * 100 < 25 ? Enemy.States.HEALING : Enemy.States.ATTACKING);
+          if (
+            Phaser.Math.Distance.Between(
+              this.x,
+              this.y,
+              this.home.x,
+              this.home.y
+            ) > 100
+          ) {
+            this.setState(
+              Math.random() * 100 < 25
+                ? Enemy.States.HEALING
+                : Enemy.States.ATTACKING
+            );
           } else {
             this.setState(Enemy.States.ATTACKING);
           }
-          
         }
         break;
       case Enemy.States.HEALING:
         this.scene.physics.moveToObject(this, this.home, this.speed);
+        break;
       case Enemy.States.DYING:
         // TODO: death animation
-        this.setState(Enemy.States.DEAD)
+        this.setState(Enemy.States.DEAD);
         break;
       default:
         // console.log({ x: this.target.x, y: this.target.y})
@@ -103,19 +121,19 @@ export class Enemy extends Phaser.GameObjects.Ellipse {
     this.maxHP = Math.round(this.maxHP * 1.5);
     this.hp = this.maxHP;
     this.stunnedTimer = 1000;
-    this.setState(Enemy.States.STUNNED)
+    this.setState(Enemy.States.STUNNED);
     // TODO: animate power up
   }
 
   hitTarget(target) {
     target.hp -= Math.round(this.hp / 5);
-    
+
     if (this.hp < 10) {
       this.hp = 0;
-      this.setState(Enemy.States.DEAD)
+      this.setState(Enemy.States.DEAD);
       return;
     }
-    
+
     this.hp -= 10;
     this.setState(Enemy.States.TAKING_DAMAGE);
   }
@@ -128,7 +146,7 @@ export class Enemy extends Phaser.GameObjects.Ellipse {
     this.hp -= damage;
     this.setState(Enemy.States.TAKING_DAMAGE);
   }
-  
+
   static States = {
     ATTACKING: 0,
     TAKING_DAMAGE: 1,
@@ -136,6 +154,5 @@ export class Enemy extends Phaser.GameObjects.Ellipse {
     HEALING: 3,
     DYING: 4,
     DEAD: 5
-  }
+  };
 }
-
